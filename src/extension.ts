@@ -27,6 +27,8 @@ export function activate(context: vscode.ExtensionContext) {
 				return await axios.get('https://api.waifu.im/random?is_nsfw=false&many=true').then(d => d.data);
 			};
 
+			//dk4r4gx6hrtjw426blzcyg4edvwk2be3n6ziqucenvq6mxjf2qra
+
 			let ListGambar = await DapatinGambar() as any;
 			const KirimGambar = async () => {
 				panel.webview.html = `<!DOCTYPE html>

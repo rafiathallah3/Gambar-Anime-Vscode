@@ -1,6 +1,7 @@
 {
   "name": "gambarAnime",
   "displayName": "Gambar Anime",
+  "publisher": "rafiathallah3",
   "description": "Menunjukkan gambar anime",
   "version": "0.0.1",
   "engines": {
