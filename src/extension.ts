@@ -58,7 +58,7 @@ export function activate(context: vscode.ExtensionContext) {
 				iterasi++;
 				console.log("iterasi: ", iterasi);
 
-				if(iterasi > 5) {
+				if(iterasi > 25) {
 					ListGambar = await DapatinGambar();
 					iterasi = 0;
 				}
