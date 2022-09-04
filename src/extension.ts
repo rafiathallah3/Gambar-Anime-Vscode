@@ -38,6 +38,10 @@ export function activate(context: vscode.ExtensionContext) {
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<title>Gambar Anime</title>
 					<style>
+						* {
+							margin: 0;
+							padding: 0;
+						}
 						.imgbox {
 							display: grid;
 							height: 100%;
