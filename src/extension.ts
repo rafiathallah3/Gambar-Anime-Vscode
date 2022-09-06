@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
+import { ReadableStreamDefaultController } from 'stream/web';
 
 export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
@@ -8,16 +9,17 @@ export function activate(context: vscode.ExtensionContext) {
 				'gambarAnime',
 				'Gambar Anime',
 				vscode.ViewColumn.One,
-				{}
+				{enableScripts: true}
 			);
 
 			let iterasi = 0;
+			let tapoin = false;
 			const EkstrakGambar = (gambar: {url: string}[]) => {
 				let text = '';
 				
 				console.log(gambar, " isi gamar");
 				gambar.forEach((value, i) => {
-					text += `<img class="center-fit" src="${value.url}" loading="lazy" ${(i === iterasi ? '' : 'style="display: none"')} />\n`;
+					text += `<img class="center-fit anime" src="${value.url}" loading="lazy" ${(!tapoin ? (i === iterasi ? '' : 'style="display: none"') : 'style="display: none"')} onclick="KlikGambar(this)" />\n`;
 				});
 
 				return text;
@@ -57,6 +59,27 @@ export function activate(context: vscode.ExtensionContext) {
 					<div class="imgbox">
 						${EkstrakGambar(ListGambar.images)}
 					</div>
+					<button onclick="Tapoin()">Tapoin</button>
+					<script>
+						const vscode = acquireVsCodeApi();
+						let tapoin = false;
+
+						function KlikGambar(element) {
+							console.log(element.getAttribute('src'));
+							vscode.postMessage({
+								command: "gambar",
+								text: element.getAttribute('src')
+							});
+						}
+
+						function Tapoin() {
+							tapoin = !tapoin;
+							vscode.postMessage({
+								command: "tapoin",
+								text: tapoin
+							})
+						}
+					</script>
 				</body>
 				</html>`;
 				iterasi++;
@@ -69,9 +92,20 @@ export function activate(context: vscode.ExtensionContext) {
 			};
 
 			await KirimGambar();
-			console.log("Tunggu 10 detik");
 			await new Promise(r => setTimeout(r, 10000));
-			console.log("Sudah tunggu!");
+
+			panel.webview.onDidReceiveMessage(async (pesan) => {
+				switch (pesan.command) {
+					case 'gambar':
+						vscode.env.openExternal(vscode.Uri.parse(pesan.text));
+						return;
+					case "tapoin":
+						tapoin = pesan.text;
+						console.log(!tapoin);
+						await KirimGambar();
+						return;
+				}
+			}, undefined, context.subscriptions);
 
 			setInterval(KirimGambar, 30000);
 		})
