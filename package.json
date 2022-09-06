@@ -3,7 +3,7 @@
   "displayName": "Gambar Anime",
   "publisher": "rafiathallah3",
   "description": "Menunjukkan gambar anime",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.71.0"
   },
