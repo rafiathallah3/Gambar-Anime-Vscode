@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
 			};
 
 			const DapatinGambar = async () => {
-				return await axios.get('https://api.waifu.im/random?is_nsfw=false&many=true').then(d => d.data);
+				return await axios.get('https://api.waifu.im/search/?is_nsfw=false&many=true').then(d => d.data);
 			};
 
 			//dk4r4gx6hrtjw426blzcyg4edvwk2be3n6ziqucenvq6mxjf2qra
