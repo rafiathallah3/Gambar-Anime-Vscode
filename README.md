@@ -1,5 +1,5 @@
 # gambarAnime README
 
-Coding sambil melihat kumpulan foto anime
+Coding while looking at an anime picture.
 
 https://marketplace.visualstudio.com/items?itemName=rafiathallah3.gambarAnime
