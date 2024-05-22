@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
 
+const DapatinGambar = async () => {
+	return await axios.get('https://api.waifu.im/search/?is_nsfw=false&limit=20').then(d => d.data);
+};
+
 export function activate(context: vscode.ExtensionContext) {
 	let currentPanel: vscode.WebviewPanel | undefined = undefined;
 
@@ -11,12 +15,12 @@ export function activate(context: vscode.ExtensionContext) {
 				: undefined;
 
 			if(currentPanel) {
-				(currentPanel as vscode.WebviewPanel).reveal(columnToShowIn);
+				currentPanel.reveal(columnToShowIn);
 			} else {
 				currentPanel = vscode.window.createWebviewPanel(
 					'gambarAnime',
 					'Gambar Anime',
-					vscode.ViewColumn.One,
+					columnToShowIn || vscode.ViewColumn.One,
 					{enableScripts: true}
 				);
 	
@@ -30,10 +34,6 @@ export function activate(context: vscode.ExtensionContext) {
 					});
 	
 					return text;
-				};
-	
-				const DapatinGambar = async () => {
-					return await axios.get('https://api.waifu.im/search/?is_nsfw=false&limit=20').then(d => d.data);
 				};
 	
 				//dk4r4gx6hrtjw426blzcyg4edvwk2be3n6ziqucenvq6mxjf2qra
@@ -117,7 +117,7 @@ export function activate(context: vscode.ExtensionContext) {
 				};
 	
 				await KirimGambar();
-				await new Promise(r => setTimeout(r, 10000));
+				// await new Promise(r => setTimeout(r, 10000)); // What the hell is this for???
 	
 				currentPanel.webview.onDidReceiveMessage(async (pesan) => {
 					switch (pesan.command) {
@@ -136,6 +136,7 @@ export function activate(context: vscode.ExtensionContext) {
 				const interval = setInterval(KirimGambar, 30000);
 	
 				currentPanel.onDidDispose(() => {
+					currentPanel = undefined;
 					clearInterval(interval);
 				}, null, context.subscriptions);
 			}
