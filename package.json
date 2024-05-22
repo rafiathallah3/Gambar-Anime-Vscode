@@ -2,8 +2,9 @@
   "name": "gambarAnime",
   "displayName": "Gambar Anime",
   "publisher": "rafiathallah3",
-  "description": "Menunjukkan gambar anime",
-  "version": "0.0.5",
+  "description": "Shows anime pictures",
+  "icon": "img/icon.png",
+  "version": "0.0.6",
   "engines": {
     "vscode": "^1.71.0"
   },
