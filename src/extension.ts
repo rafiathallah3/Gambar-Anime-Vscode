@@ -1,8 +1,23 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
 
+const MaximumIterasi = 20;
+
+let StatusWeb = 1;
 const DapatinGambar = async () => {
-	return await axios.get('https://api.waifu.im/search/?is_nsfw=false&limit=20').then(d => d.data);
+	StatusWeb = (StatusWeb + 1) % 2;
+
+	let dataGambar;
+	if(StatusWeb === 0) {
+		dataGambar = await axios.get('https://api.waifu.im/search/?is_nsfw=false&limit=20').then(d => d.data).catch((r) => parseInt(r.response.status));
+	} else {
+		dataGambar = await axios.post("https://api.waifu.pics/many/sfw/waifu", {}).then(d => d.data).catch((r) => parseInt(r.response.status)) as { files: string[], images: {url: string}[] };
+		if(typeof(dataGambar) !== "number") {
+			dataGambar.images = dataGambar.files.map(d => ({ url: d }));
+		}
+	}
+
+	return dataGambar >= 400 ? "Error" : dataGambar;
 };
 
 export function activate(context: vscode.ExtensionContext) {
@@ -30,7 +45,9 @@ export function activate(context: vscode.ExtensionContext) {
 					let text = '';
 	
 					gambar.forEach((value, i) => {
-						text += `<img id="gambar" class="center-fit ${(!tapoin ? (i === iterasi ? '' : 'tapoin') : 'tapoin')}" src="${value.url}" loading="lazy" onclick="KlikGambar(this)" />\n`;
+						if(i < MaximumIterasi) {
+							text += `<img id="gambar" class="center-fit ${(!tapoin ? (i === iterasi ? '' : 'tapoin') : 'tapoin')}" src="${value.url}" loading="lazy" onclick="KlikGambar(this)" />\n`;
+						}
 					});
 	
 					return text;
@@ -39,6 +56,8 @@ export function activate(context: vscode.ExtensionContext) {
 				//dk4r4gx6hrtjw426blzcyg4edvwk2be3n6ziqucenvq6mxjf2qra
 	
 				let ListGambar = await DapatinGambar() as any;
+				var interval: NodeJS.Timer;
+				
 				const KirimGambar = async () => {
 					currentPanel!.webview.html = `<!DOCTYPE html>
 					<html lang="en">
@@ -67,11 +86,13 @@ export function activate(context: vscode.ExtensionContext) {
 					</head>
 					<body>
 						<div class="imgbox">
-							${EkstrakGambar(ListGambar.images)}
+							${(ListGambar !== "Error" ? EkstrakGambar(ListGambar.images) : '<h3 style="text-align: center;">API Error, Retrying...</h3>')}
 						</div>
 						<div style="display: flex; flex-direction: row; justify-content: center;">
-							<button style="margin: 10px;" onclick="Tapoin()">Hide</button>
-							<button style="margin: 10px;" onclick="Skip()">Skip</button>
+							${(ListGambar !== "Error" ? `
+								<button style="margin: 10px;" onclick="Tapoin()">Hide</button>
+								<button style="margin: 10px;" onclick="Skip()">Skip</button>` 
+								: "" )}
 						</div>
 						<script>
 							const vscode = acquireVsCodeApi();
@@ -110,15 +131,21 @@ export function activate(context: vscode.ExtensionContext) {
 					</html>`;
 					iterasi++;
 	
-					if(iterasi > 20) {
+					if(iterasi > MaximumIterasi || ListGambar === "Error") {
 						ListGambar = await DapatinGambar();
 						iterasi = 0;
+
+						clearInterval(interval);
+						interval = setInterval(KirimGambar, ListGambar === "Error" ? 3000 : 30000);
+						await KirimGambar();
 					}
 				};
 	
+				interval = setInterval(KirimGambar, ListGambar === "Error" ? 3000 : 30000);
+
 				await KirimGambar();
-				// await new Promise(r => setTimeout(r, 10000)); // What the hell is this for???
-	
+				// await new Promise(r => setTimeout(r, 30000)); // What the hell is this for???
+
 				currentPanel.webview.onDidReceiveMessage(async (pesan) => {
 					switch (pesan.command) {
 						case 'gambar':
@@ -128,13 +155,14 @@ export function activate(context: vscode.ExtensionContext) {
 							tapoin = pesan.text;
 							return;
 						case "skip":
+							clearInterval(interval);
+							interval = setInterval(KirimGambar, ListGambar === "Error" ? 3000 : 30000);
 							await KirimGambar();
+
 							return;
 					}
 				}, undefined, context.subscriptions);
-	
-				const interval = setInterval(KirimGambar, 30000);
-	
+		
 				currentPanel.onDidDispose(() => {
 					currentPanel = undefined;
 					clearInterval(interval);
