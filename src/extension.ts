@@ -38,6 +38,30 @@ export function activate(context: vscode.ExtensionContext) {
 					columnToShowIn || vscode.ViewColumn.One,
 					{enableScripts: true}
 				);
+
+				console.log("DISINI!");
+				currentPanel.webview.onDidReceiveMessage(async (pesan) => {
+					switch (pesan.command) {
+						case 'gambar':
+							vscode.env.openExternal(vscode.Uri.parse(pesan.text));
+							return;
+						case "tapoin":
+							tapoin = pesan.text;
+							return;
+						case "skip":
+							clearInterval(interval);
+							interval = setInterval(KirimGambar, ListGambar === "Error" ? 3000 : 30000);
+							await KirimGambar();
+
+							return;
+					}
+				}, undefined, context.subscriptions);
+		
+				currentPanel.onDidDispose(() => {
+					console.log("DISPOSE");
+					currentPanel = undefined;
+					clearInterval(interval);
+				}, null, context.subscriptions);
 	
 				let iterasi = 0;
 				let tapoin = false;
@@ -59,85 +83,88 @@ export function activate(context: vscode.ExtensionContext) {
 				var interval: NodeJS.Timer;
 				
 				const KirimGambar = async () => {
-					currentPanel!.webview.html = `<!DOCTYPE html>
-					<html lang="en">
-					<head>
-						<meta charset="UTF-8">
-						<meta name="viewport" content="width=device-width, initial-scale=1.0">
-						<title>Gambar Anime</title>
-						<style>
-							* {
-								margin: 0;
-								padding: 0;
-							}
-							.imgbox {
-								display: grid;
-								height: 100%;
-							}
-							.center-fit {
-								max-width: 100%;
-								max-height: 100vh;
-								margin: auto;
-							}
-							.tapoin {
-								display: none;
-							}
-						</style>
-					</head>
-					<body>
-						<div class="imgbox">
-							${(ListGambar !== "Error" ? EkstrakGambar(ListGambar.images) : '<h3 style="text-align: center;">API Error, Retrying...</h3>')}
-						</div>
-						<div style="display: flex; flex-direction: row; justify-content: center;">
-							${(ListGambar !== "Error" ? `
-								<button style="margin: 10px;" onclick="Tapoin()">Hide</button>
-								<button style="margin: 10px;" onclick="Skip()">Skip</button>` 
-								: "" )}
-						</div>
-						<script>
-							const vscode = acquireVsCodeApi();
-							let tapoin = false;
-	
-							function KlikGambar(element) {
-								vscode.postMessage({
-									command: "gambar",
-									text: element.getAttribute('src')
-								});
-							}
-	
-							function Tapoin() {
-								tapoin = !tapoin;
-								
-								if(tapoin) {
-									document.getElementById("gambar").classList.add("tapoin");
-								} else {
-									document.getElementById("gambar").classList.remove("tapoin");
+					if(currentPanel !== undefined) {
+						console.log("ADA!", currentPanel);
+						currentPanel!.webview.html = `<!DOCTYPE html>
+						<html lang="en">
+						<head>
+							<meta charset="UTF-8">
+							<meta name="viewport" content="width=device-width, initial-scale=1.0">
+							<title>Gambar Anime</title>
+							<style>
+								* {
+									margin: 0;
+									padding: 0;
 								}
-								
-								vscode.postMessage({
-									command: "tapoin",
-									text: tapoin
-								});
-							}
-
-							function Skip() {
-								vscode.postMessage({
-									command: "skip",
-									text: "skip"
-								});
-							}
-						</script>
-					</body>
-					</html>`;
-					iterasi++;
+								.imgbox {
+									display: grid;
+									height: 100%;
+								}
+								.center-fit {
+									max-width: 100%;
+									max-height: 100vh;
+									margin: auto;
+								}
+								.tapoin {
+									display: none;
+								}
+							</style>
+						</head>
+						<body>
+							<div class="imgbox">
+								${(ListGambar !== "Error" ? EkstrakGambar(ListGambar.images) : '<h3 style="text-align: center;">API Error, Retrying...</h3>')}
+							</div>
+							<div style="display: flex; flex-direction: row; justify-content: center;">
+								${(ListGambar !== "Error" ? `
+									<button style="margin: 10px;" onclick="Tapoin()">Hide</button>
+									<button style="margin: 10px;" onclick="Skip()">Skip</button>` 
+									: "" )}
+							</div>
+							<script>
+								const vscode = acquireVsCodeApi();
+								let tapoin = false;
+		
+								function KlikGambar(element) {
+									vscode.postMessage({
+										command: "gambar",
+										text: element.getAttribute('src')
+									});
+								}
+		
+								function Tapoin() {
+									tapoin = !tapoin;
+									
+									if(tapoin) {
+										document.getElementById("gambar").classList.add("tapoin");
+									} else {
+										document.getElementById("gambar").classList.remove("tapoin");
+									}
+									
+									vscode.postMessage({
+										command: "tapoin",
+										text: tapoin
+									});
+								}
 	
-					if(iterasi > MaximumIterasi || ListGambar === "Error") {
-						ListGambar = await DapatinGambar();
-						iterasi = 0;
-
-						clearInterval(interval);
-						interval = setInterval(KirimGambar, ListGambar === "Error" ? 3000 : 30000);
-						await KirimGambar();
+								function Skip() {
+									vscode.postMessage({
+										command: "skip",
+										text: "skip"
+									});
+								}
+							</script>
+						</body>
+						</html>`;
+						iterasi++;
+		
+						if(iterasi > MaximumIterasi || ListGambar === "Error") {
+							ListGambar = await DapatinGambar();
+							iterasi = 0;
+	
+							clearInterval(interval);
+							interval = setInterval(KirimGambar, ListGambar === "Error" ? 3000 : 30000);
+							await KirimGambar();
+						}
 					}
 				};
 	
@@ -145,28 +172,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 				await KirimGambar();
 				// await new Promise(r => setTimeout(r, 30000)); // What the hell is this for???
-
-				currentPanel.webview.onDidReceiveMessage(async (pesan) => {
-					switch (pesan.command) {
-						case 'gambar':
-							vscode.env.openExternal(vscode.Uri.parse(pesan.text));
-							return;
-						case "tapoin":
-							tapoin = pesan.text;
-							return;
-						case "skip":
-							clearInterval(interval);
-							interval = setInterval(KirimGambar, ListGambar === "Error" ? 3000 : 30000);
-							await KirimGambar();
-
-							return;
-					}
-				}, undefined, context.subscriptions);
-		
-				currentPanel.onDidDispose(() => {
-					currentPanel = undefined;
-					clearInterval(interval);
-				}, null, context.subscriptions);
 			}
 		})
 	);
