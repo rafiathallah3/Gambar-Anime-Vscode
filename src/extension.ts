@@ -39,7 +39,6 @@ export function activate(context: vscode.ExtensionContext) {
 					{enableScripts: true}
 				);
 
-				console.log("DISINI!");
 				currentPanel.webview.onDidReceiveMessage(async (pesan) => {
 					switch (pesan.command) {
 						case 'gambar':
@@ -58,7 +57,6 @@ export function activate(context: vscode.ExtensionContext) {
 				}, undefined, context.subscriptions);
 		
 				currentPanel.onDidDispose(() => {
-					console.log("DISPOSE");
 					currentPanel = undefined;
 					clearInterval(interval);
 				}, null, context.subscriptions);
@@ -84,7 +82,6 @@ export function activate(context: vscode.ExtensionContext) {
 				
 				const KirimGambar = async () => {
 					if(currentPanel !== undefined) {
-						console.log("ADA!", currentPanel);
 						currentPanel!.webview.html = `<!DOCTYPE html>
 						<html lang="en">
 						<head>
