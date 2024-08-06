@@ -13,7 +13,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:gambarAnime.gambar"
+    "onCommand:gambarAnime.gambar",
+    "onWebviewPanel:gambarAnime"
   ],
   "main": "./dist/extension.js",
   "contributes": {
