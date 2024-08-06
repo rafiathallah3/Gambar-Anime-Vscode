@@ -4,7 +4,7 @@
   "publisher": "rafiathallah3",
   "description": "Shows anime pictures",
   "icon": "img/icon.png",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "repository": "https://github.com/rafiathallah3/Gambar-Anime-Vscode",
   "engines": {
     "vscode": "^1.71.0"
